@@ -16,4 +16,5 @@ From `tasks/`.
 - Playwright (`@playwright/test`)
 - ffmpeg / ffprobe — `winget install Gyan.FFmpeg`
 - `edge-tts` — `python -m pip install edge-tts`
+- `python-docx` — `python -m pip install python-docx` (scripts/docx_to_md.py)
 - `curl`

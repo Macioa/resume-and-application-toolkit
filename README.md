@@ -1,28 +1,45 @@
-# personal
+# Resume and Application Toolkit
 
-Private stash for reusable personal info and LLM tasks — handling emails, applying to jobs, refactoring code and documents, recording demo videos, and daily summaries.
+A collection of markdown runbooks, scripts, and other tools integrated with Supabase to produce output composed by the LLM but written by the user. Instead of slopped resumes, real information is chosen by relevance to the task at hand. Designed for maximum user control over output with minimum cost in both tokens and subscriptions.
 
-## Install
+- [Install](docs/install.md)
+- [Guidance](docs/guidance.md)
 
-Run `tasks/swe/setup.md` with Claude, Cursor, or a coding agent.
+## Internal Resume Tools
 
-## Layout
+Resume information is written by hand and stored in Supabase: work experience, education, strengths, and pitches.
 
-- `tasks/` — runbooks: `general/` (refactor), `swe/` (setup, recording, PR triage, docs), `db/` (backup, refactor), plus email, jobs, daily summaries; `tasks/resume/ingest/` adds resume and personal info
-- `scripts/` — local scripts (call transcription, video archive)
-- `docs/` — operational notes (atomic routing, installs, logins)
-- `supabase/` — schema and migrations for personal data
-- `backups/` — JSONL of rows removed from the DB (gitignored)
+- **Data fill** by ingesting an existing resume
+- **Custom resume** generated for a company and job description
+- **Generic resume** generated without a job description
+- **Custom Cover letter** generated for a company and job description
+- **STAR review** checks pitches, employment, growth, and hardships for STAR adherence and suggests fixes
+- **Fuzzy skill search** finds explicit, tangential, and related skills, and presents the best information relevant to the job post, with skill years grouped (e.g. "AWS (2) + Other cloud services (4)")
 
-## Tools
+## Internal Application Tools
 
-Human only (Claude/Cursor cannot access these directly):
+Using resume information in the database, apply to and track job applications.
 
-- SMS Backup & Restore (SyncTech) — text backup and storage
-- ACR — phone call recordings
+- Find the top recent job posts matching job preferences
+- Fill out applications with pre-specified responses only
+- Track applications and responses
+- Triage email with draft replies, file no-action mail, and log application responses
+- Transcribe calls with speaker labels, from Fathom or local recordings (Windows, Mac, Phone)
+- Generate embedded, low-token searchable transcripts, searched by meaning or keyword
+- Record and validate abuses
 
-LLM-accessible:
+## AI Techniques
 
-- Browsing — Claude in Chrome, EasyPlaywrightMCP, Browser MCP (in that order)
-- Email/Calendar — Composio (Gmail, Google Calendar)
-- Fathom — call transcripts (preferred)
+- **Embeddings** generated locally (fastembed, BAAI/bge-base-en-v1.5 768-dim) and in Supabase Edge Functions (gte-small 384-dim), with no paid embedding API
+- **Vector search** with pgvector, cosine similarity, and HNSW indexes
+- **Hybrid search (RAG retrieval)** fusing semantic and Postgres full-text keyword results with reciprocal rank fusion (RRF)
+- **Chunking** of transcripts by speaker turn, sentence, and silence gaps, with overlapping windows and token limits tuned against retrieval tests
+- **Asymmetric retrieval** using query instruction prefixes
+- **Speech-to-text** with faster-whisper and speaker diarization (pyannote), with Whisper hallucination filtering
+- **Semantic skill matching** with similarity thresholds and abstract skill groups
+- **Agentic workflows** as markdown runbooks and Claude skills, with MCP tool integrations (Supabase, Gmail, Google Calendar, browser automation)
+
+## Personal Tools
+
+- Todo list
+- Interview Prep
