@@ -35,12 +35,16 @@ ALTER TABLE public.abuse_impact_escalator ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.abuse_severity_escalator ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employer ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employment_titles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.employment_resumedesc_bullets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employer_portals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skill_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.alternate_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skill_group_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.education_and_training ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.personal_growth ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.public_contact_info ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profile_photo ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hardships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employer_employer_portals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_references ENABLE ROW LEVEL SECURITY;
@@ -80,12 +84,16 @@ ALTER TABLE public.abuse_impact_escalator FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.abuse_severity_escalator FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.employer FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.employment_titles FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.employment_resumedesc_bullets FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.employer_portals FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.skills FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.skill_groups FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.alternate_skills FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.skill_group_members FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.education_and_training FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.personal_growth FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.public_contact_info FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.profile_photo FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.hardships FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.employer_employer_portals FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.job_references FORCE ROW LEVEL SECURITY;
@@ -125,12 +133,16 @@ REVOKE ALL ON TABLE public.abuse_impact_escalator FROM anon, authenticated;
 REVOKE ALL ON TABLE public.abuse_severity_escalator FROM anon, authenticated;
 REVOKE ALL ON TABLE public.employer FROM anon, authenticated;
 REVOKE ALL ON TABLE public.employment_titles FROM anon, authenticated;
+REVOKE ALL ON TABLE public.employment_resumedesc_bullets FROM anon, authenticated;
 REVOKE ALL ON TABLE public.employer_portals FROM anon, authenticated;
 REVOKE ALL ON TABLE public.skills FROM anon, authenticated;
 REVOKE ALL ON TABLE public.skill_groups FROM anon, authenticated;
+REVOKE ALL ON TABLE public.alternate_skills FROM anon, authenticated;
 REVOKE ALL ON TABLE public.skill_group_members FROM anon, authenticated;
 REVOKE ALL ON TABLE public.education_and_training FROM anon, authenticated;
 REVOKE ALL ON TABLE public.personal_growth FROM anon, authenticated;
+REVOKE ALL ON TABLE public.public_contact_info FROM anon, authenticated;
+REVOKE ALL ON TABLE public.profile_photo FROM anon, authenticated;
 REVOKE ALL ON TABLE public.hardships FROM anon, authenticated;
 REVOKE ALL ON TABLE public.employer_employer_portals FROM anon, authenticated;
 REVOKE ALL ON TABLE public.job_references FROM anon, authenticated;
@@ -161,6 +173,8 @@ REVOKE EXECUTE ON FUNCTION public.pitch_detail(text[], public.skill_usage_mode)
 REVOKE EXECUTE ON FUNCTION public.get_all_pitches() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.get_pitches(text[]) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.get_projects() FROM PUBLIC, anon, authenticated;
+-- Projects are public portfolio content (see 008): anon reads them with the publishable key, no JWT.
+GRANT EXECUTE ON FUNCTION public.get_projects() TO anon;
 
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
 
@@ -239,16 +253,20 @@ GRANT chat TO authenticator;
 GRANT USAGE ON SCHEMA public TO resume_reader;
 GRANT SELECT ON TABLE public.employer TO resume_reader;
 GRANT SELECT ON TABLE public.employment_titles TO resume_reader;
+GRANT SELECT ON TABLE public.employment_resumedesc_bullets TO resume_reader;
 GRANT SELECT ON TABLE public.education_and_training TO resume_reader;
 GRANT SELECT ON TABLE public.personal_growth TO resume_reader;
+GRANT SELECT ON TABLE public.public_contact_info TO resume_reader;
+GRANT SELECT ON TABLE public.profile_photo TO resume_reader;
 GRANT SELECT ON TABLE public.hardships TO resume_reader;
 -- Every column except priority (hidden; sort via skill_sort_keys).
-GRANT SELECT (id, name, "desc", type, private, embedding, aliases) ON TABLE public.skills TO resume_reader;
+GRANT SELECT (id, name, "desc", type, private, embedding, aliases, preferred_measure) ON TABLE public.skills TO resume_reader;
 GRANT SELECT ON TABLE public.skill_links TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.get_skill(text, public.skill_usage_mode) TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.get_skills(text[], public.skill_usage_mode) TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.get_all_skills() TO resume_reader;
 GRANT SELECT ON TABLE public.skill_groups TO resume_reader;
+GRANT SELECT ON TABLE public.alternate_skills TO resume_reader;
 GRANT SELECT ON TABLE public.skill_group_members TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.skill_usage(uuid[], public.skill_usage_mode) TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.skill_group_summary(uuid, uuid, public.skill_usage_mode) TO resume_reader;
@@ -264,7 +282,7 @@ GRANT EXECUTE ON FUNCTION public.get_all_pitches() TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.get_pitches(text[]) TO resume_reader;
 -- Every column except priority (hidden; sort via project_sort_keys).
 GRANT SELECT (id, name, "desc", problem_to_solve, key_features, tools_used, live_url, source_url, private,
-  objective, result, brag_detail, image_urls, start_day, start_month, start_year, end_day, end_month, end_year,
+  objective, result, brag_detail, lessons_learned, image_urls, start_day, start_month, start_year, end_day, end_month, end_year,
   vibe_and_test, curated_generated_code, hand_written_code, homepage_url)
   ON TABLE public.projects TO resume_reader;
 GRANT SELECT ON TABLE public.project_skills TO resume_reader;
@@ -273,6 +291,8 @@ GRANT SELECT ON TABLE public.pitch_projects TO resume_reader;
 GRANT SELECT ON TABLE public.pitch_growth TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.get_projects() TO resume_reader;
 GRANT EXECUTE ON FUNCTION public.skill_sort_keys(), public.project_sort_keys() TO resume_reader;
+GRANT EXECUTE ON FUNCTION public.jsonb_compact(jsonb), public.resume_dates(integer, integer, integer, integer) TO resume_reader;
+GRANT SELECT ON TABLE public.resume TO resume_reader;
 GRANT SELECT ON TABLE public.personal_info_and_docs TO resume_reader;
 -- GraphQL only via graphql_read (read-only); no graphql_public endpoint.
 GRANT USAGE ON SCHEMA graphql TO resume_reader;
@@ -288,6 +308,10 @@ CREATE POLICY resume_reader_select ON public.employment_titles
   FOR SELECT TO resume_reader, chat
   USING (NOT private AND EXISTS (SELECT 1 FROM public.employer e WHERE e.id = employer_id));
 
+CREATE POLICY resume_reader_select ON public.employment_resumedesc_bullets
+  FOR SELECT TO resume_reader, chat
+  USING (EXISTS (SELECT 1 FROM public.employment_titles t WHERE t.id = employment_title_id));
+
 CREATE POLICY resume_reader_select ON public.education_and_training
   FOR SELECT TO resume_reader, chat
   USING (NOT private);
@@ -295,6 +319,14 @@ CREATE POLICY resume_reader_select ON public.education_and_training
 CREATE POLICY resume_reader_select ON public.personal_growth
   FOR SELECT TO resume_reader, chat
   USING (NOT private);
+
+CREATE POLICY resume_reader_select ON public.public_contact_info
+  FOR SELECT TO resume_reader
+  USING (true);
+
+CREATE POLICY resume_reader_select ON public.profile_photo
+  FOR SELECT TO resume_reader
+  USING (true);
 
 CREATE POLICY resume_reader_select ON public.hardships
   FOR SELECT TO resume_reader, chat
@@ -308,6 +340,10 @@ CREATE POLICY resume_reader_select ON public.skill_groups
   FOR SELECT TO resume_reader, chat
   USING (true);
 
+CREATE POLICY resume_reader_select ON public.alternate_skills
+  FOR SELECT TO resume_reader
+  USING (true);
+
 CREATE POLICY resume_reader_select ON public.skill_group_members
   FOR SELECT TO resume_reader, chat
   USING (EXISTS (SELECT 1 FROM public.skills s WHERE s.id = skill_id));
@@ -319,8 +355,6 @@ CREATE POLICY resume_reader_select ON public.skill_links
     AND EXISTS (SELECT 1 FROM public.skills s WHERE s.id = skill_id)
     AND (employment_title_id IS NULL
       OR EXISTS (SELECT 1 FROM public.employment_titles t WHERE t.id = employment_title_id))
-    AND (employer_id IS NULL
-      OR EXISTS (SELECT 1 FROM public.employer e WHERE e.id = employer_id))
     AND (education_and_training_id IS NULL
       OR EXISTS (SELECT 1 FROM public.education_and_training d WHERE d.id = education_and_training_id))
     AND (personal_growth_id IS NULL
@@ -340,8 +374,8 @@ CREATE POLICY resume_reader_select ON public.pitch_evidence
   USING (
     (employment_title_id IS NULL
       OR EXISTS (SELECT 1 FROM public.employment_titles t WHERE t.id = employment_title_id))
-    AND (employer_id IS NULL
-      OR EXISTS (SELECT 1 FROM public.employer e WHERE e.id = employer_id))
+    AND (employment_resumedesc_bullet_id IS NULL
+      OR EXISTS (SELECT 1 FROM public.employment_resumedesc_bullets b WHERE b.id = employment_resumedesc_bullet_id))
     AND (education_and_training_id IS NULL
       OR EXISTS (SELECT 1 FROM public.education_and_training d WHERE d.id = education_and_training_id))
   );
@@ -398,11 +432,12 @@ GRANT EXECUTE ON FUNCTION public.skill_sort_keys(), public.project_sort_keys() T
 
 GRANT SELECT ON TABLE public.employer TO chat;
 GRANT SELECT ON TABLE public.employment_titles TO chat;
+GRANT SELECT ON TABLE public.employment_resumedesc_bullets TO chat;
 GRANT SELECT ON TABLE public.education_and_training TO chat;
 GRANT SELECT ON TABLE public.personal_growth TO chat;
 GRANT SELECT ON TABLE public.hardships TO chat;
 -- Every column except priority (hidden; sort via skill_sort_keys).
-GRANT SELECT (id, name, "desc", type, private, embedding, aliases) ON TABLE public.skills TO chat;
+GRANT SELECT (id, name, "desc", type, private, embedding, aliases, preferred_measure) ON TABLE public.skills TO chat;
 GRANT SELECT ON TABLE public.skill_links TO chat;
 GRANT SELECT ON TABLE public.pitches TO chat;
 GRANT SELECT ON TABLE public.pitch_skills TO chat;
@@ -410,7 +445,7 @@ GRANT SELECT ON TABLE public.pitch_evidence TO chat;
 GRANT SELECT ON TABLE public.pitch_catalog TO chat;
 -- Every column except priority (hidden; sort via project_sort_keys).
 GRANT SELECT (id, name, "desc", problem_to_solve, key_features, tools_used, live_url, source_url, private,
-  objective, result, brag_detail, image_urls, start_day, start_month, start_year, end_day, end_month, end_year,
+  objective, result, brag_detail, lessons_learned, image_urls, start_day, start_month, start_year, end_day, end_month, end_year,
   vibe_and_test, curated_generated_code, hand_written_code, homepage_url)
   ON TABLE public.projects TO chat;
 GRANT SELECT ON TABLE public.project_skills TO chat;
